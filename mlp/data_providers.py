@@ -120,6 +120,7 @@ class MNISTDataProvider(DataProvider):
         # construct path to data using os.path.join to ensure the correct path
         # separator for the current platform / OS is used
         # MLP_DATA_DIR environment variable should point to the data directory
+        os.environ['MLP_DATA_DIR']='D:/mlpractical/data'
         data_path = os.path.join(
             os.environ['MLP_DATA_DIR'], 'mnist-{0}.npz'.format(which_set))
         assert os.path.isfile(data_path), (
@@ -133,11 +134,11 @@ class MNISTDataProvider(DataProvider):
         super(MNISTDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
-    # def next(self):
-    #    """Returns next data batch or raises `StopIteration` if at end."""
-    #    inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
-    #    return inputs_batch, self.to_one_of_k(targets_batch)
-    #
+    def next(self):
+       """Returns next data batch or raises `StopIteration` if at end."""
+       inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
+       return inputs_batch, self.to_one_of_k(targets_batch)
+
     def __next__(self):
         return self.next()
 
@@ -156,7 +157,16 @@ class MNISTDataProvider(DataProvider):
             to zero except for the column corresponding to the correct class
             which is equal to one.
         """
-        raise NotImplementedError()
+        try:
+            Max_num = max(int_targets)
+            target_class = np.zeros((len(int_targets), Max_num + 1))
+            count = 0
+            for i in int_targets:
+                target_class[count, i] = 1
+                count = count + 1
+            return target_class
+        except:
+            raise NotImplementedError()
 
 
 class MetOfficeDataProvider(DataProvider):
@@ -182,25 +192,60 @@ class MetOfficeDataProvider(DataProvider):
         """
         self.window_size = window_size
         assert window_size > 1, 'window_size must be at least 2.'
+        os.environ['MLP_DATA_DIR'] = 'D:/mlpractical/data'
         data_path = os.path.join(
             os.environ['MLP_DATA_DIR'], 'HadSSP_daily_qc.txt')
         assert os.path.isfile(data_path), (
             'Data file does not exist at expected path: ' + data_path
         )
         # load raw data from text file
-        # ...
+        f = open(data_path)
+        information = f.readlines()[3:]
+        info_lst = []
         # filter out all missing datapoints and flatten to a vector
-        # ...
+        for info in information:
+            sub = info.split()[2:]
+            for sub_str in sub:
+                if sub_str != '-99.99':
+                    info_lst.append(float(sub_str))
+        info_array = np.array([info_lst])
         # normalise data to zero mean, unit standard deviation
-        # ...
-        # convert from flat sequence to windowed data
-        # ...
+        normalized_info_array = (info_array - info_array.mean()) / (info_array.std(axis=1))
+        [inputs,targets]=self.windowlize(normalized_info_array)
+        # convert from flat sequence to windowed dat
         # inputs are first (window_size - 1) entries in windows
-        # inputs = ...
         # targets are last entry in windows
         # targets = ...
         # initialise base class with inputs and targets arrays
-        # super(MetOfficeDataProvider, self).__init__(
-        #     inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+        super(MetOfficeDataProvider, self).__init__(
+            inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+    def windowlize(self,normalized_info_array):
+        i = 0
+        window_lst = []
+        sub = []
+        threldhold = self.window_size
+        while i < normalized_info_array.shape[1]:
+            if i == threldhold:
+                window_lst.append(sub)
+                sub = []
+                sub.append(normalized_info_array[0][i])
+                threldhold = threldhold + self.window_size
+            else:
+                sub.append(normalized_info_array[0][i])
+            i = i + 1
+        if len(window_lst) * self.window_size < normalized_info_array.shape[1]:
+            if len(sub) >= self.window_size:
+                window_lst.append(sub[0:self.window_size])
+        pair=[]
+        input_pair=[]
+        target_pair=[]
+        for inf in window_lst:
+            inputs=inf[0:self.window_size-1]
+            target=inf[self.window_size-1]
+            input_pair.append(inputs)
+            target_pair.append(target)
+        input_array=np.array(input_pair)
+        target_array=np.array(target_pair)
+        return [input_array,target_array]
     def __next__(self):
             return self.next()
