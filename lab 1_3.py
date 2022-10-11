@@ -13,7 +13,7 @@ for window_size in [2, 5, 10]:
     ax.set_ylabel('Normalised reading')
     # iterate over data provider batches checking size and plotting
     for inputs, targets in met_dp:
-        print(inputs.shape)
+        print(inputs)
         assert inputs.shape == (batch_size, window_size - 1)
         assert targets.shape == (batch_size, )
         ax.plot(np.c_[inputs, targets].T, '.-')
