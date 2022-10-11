@@ -54,6 +54,7 @@ class Optimiser(object):
         """
         for inputs_batch, targets_batch in self.train_dataset:
             activations = self.model.fprop(inputs_batch)
+
             grads_wrt_outputs = self.error.grad(activations[-1], targets_batch)
             grads_wrt_params = self.model.grads_wrt_params(
                 activations, grads_wrt_outputs)

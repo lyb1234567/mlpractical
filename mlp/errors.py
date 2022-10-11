@@ -16,28 +16,12 @@ class SumOfSquaredDiffsError(object):
     """Sum of squared differences (squared Euclidean distance) error."""
 
     def __call__(self, outputs, targets):
-        """Calculates error function given a batch of outputs and targets.
-
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Scalar error function value.
-        """
-        raise NotImplementedError()
+        error=(((outputs-targets)**2).sum())*(1/(2*outputs.shape[0]))
+        return error 
 
     def grad(self, outputs, targets):
-        """Calculates gradient of error function with respect to outputs.
-
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Gradient of error function with respect to outputs. This should be
-            an array of shape (batch_size, output_dim).
-        """
+        grad=(1/outputs.shape[0])*(outputs-targets)
+        return grad
         raise NotImplementedError()
 
     def __repr__(self):

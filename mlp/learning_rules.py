@@ -72,7 +72,6 @@ class GradientDescentLearningRule(object):
         for param, grad in zip(self.params, grads_wrt_params):
             param -= self.learning_rate * grad
 
-
 class MomentumLearningRule(GradientDescentLearningRule):
     """Gradient descent with momentum learning rule.
 
