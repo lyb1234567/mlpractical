@@ -58,7 +58,6 @@ def train_model_and_plot_stats(
     ax_2.set_xlabel('Epoch number')
     plt.show()
     return stats, keys, fig_1, ax_1, fig_2, ax_2
-# Set training run hyperparameters
 batch_size = 128  # number of data points in a batch
 init_scale = 0.1  # scale for random parameter initialisation
 learning_rate = 0.1  # learning rate for gradient descent
@@ -79,18 +78,20 @@ valid_data.batch_size = batch_size
 # from [-init_scale, init_scale]
 param_init = UniformInit(-init_scale, init_scale, rng=rng)
 
-# Create affine + softmax model
-model = MultipleLayerModel([
-    AffineLayer(input_dim, output_dim, param_init, param_init),
-    AffineLayer(input_dim, output_dim, param_init, param_init),
-    SoftmaxLayer()
-])
 
-# Initialise a cross entropy error object
-error = SumOfSquaredDiffsError()
+# Create affine model (outputs are logs of unnormalised class probabilities)
+layers = [
+    AffineLayer(input_dim, 100),
+    SigmoidLayer(),
+    AffineLayer(100, output_dim),
+    SoftmaxLayer()
+]
+model = MultipleLayerModel(layers)
+# Initialise the error object
+error = CrossEntropySoftmaxError()
+
 # Use a basic gradient descent learning rule
 learning_rule = GradientDescentLearningRule(learning_rate=learning_rate)
-
 
 _ = train_model_and_plot_stats(
     model, error, learning_rule, train_data, valid_data, num_epochs, stats_interval)

@@ -58,6 +58,7 @@ class Optimiser(object):
             grads_wrt_params = self.model.grads_wrt_params(
                 activations, grads_wrt_outputs)
             self.learning_rule.update_params(grads_wrt_params)
+            print(self.learning_rule)
 
     def eval_monitors(self, dataset, label):
         """Evaluates the monitors for the given dataset.
