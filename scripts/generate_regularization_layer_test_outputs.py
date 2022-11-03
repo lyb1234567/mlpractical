@@ -1,7 +1,8 @@
 import argparse
 import os
 import numpy as np
-
+import sys
+sys.path.append('C:/Users/admin/Desktop/mlpractical')
 from mlp.layers import DropoutLayer
 from mlp.penalties import L1Penalty, L2Penalty
 parser = argparse.ArgumentParser(description='Welcome to Conv test script')

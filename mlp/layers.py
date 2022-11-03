@@ -647,41 +647,20 @@ class DropoutLayer(StochasticLayer):
         self.rng = rng
 
     def fprop(self, inputs, stochastic=True):
-        """Forward propagates activations through the layer transformation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            stochastic: Flag allowing different deterministic
-                forward-propagation mode in addition to default stochastic
-                forward-propagation e.g. for use at test time. If False
-                a deterministic forward-propagation transformation
-                corresponding to the expected output of the stochastic
-                forward-propagation is applied.
-
-        Returns:
-            outputs: Array of layer outputs of shape (batch_size, output_dim).
-        """
-        raise NotImplementedError
-
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
-        """Back propagates gradients through a layer.
-
-        Given gradients with respect to the outputs of the layer calculates the
-        gradients with respect to the layer inputs. This should correspond to
-        default stochastic forward-propagation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            outputs: Array of layer outputs calculated in forward pass of
-                shape (batch_size, output_dim).
-            grads_wrt_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Array of gradients with respect to the layer inputs of shape
-            (batch_size, input_dim).
-        """
-        raise NotImplementedError
+        if not stochastic:
+            return self.incl_prob*inputs
+        if self.share_across_batch :
+            self.mask = self.rng.uniform(size=(1,)+inputs.shape[1:])
+            self.mask = np.where(self.mask<self.incl_prob,1,0)
+            return inputs*self.mask
+        else:
+            self.mask = self.rng.uniform(size=inputs.shape)
+            self.mask = np.where(self.mask<self.incl_prob,1,0)
+            return inputs*self.mask
+    def bprop(self, inputs, outputs, grads_wrt_outputs): 
+        grads=self.mask*grads_wrt_outputs
+        return grads
+                                  
 
     def __repr__(self):
         return 'DropoutLayer(incl_prob={0:.1f})'.format(self.incl_prob)
