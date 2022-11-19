@@ -1,0 +1,1 @@
+python pytorch_mlp_framework/train_evaluate_image_classification_system.py --batch_size 100 --seed 0 --num_filters 32 --num_stages 3 --num_epochs 1  --num_blocks_per_stage 5 --experiment
