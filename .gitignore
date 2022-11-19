@@ -1,3 +1,4 @@
+data/
 #dropbox stuff
 *.dropbox*
 .idea/*
