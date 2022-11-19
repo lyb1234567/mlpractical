@@ -264,7 +264,10 @@ class ConvolutionalNetwork(nn.Module):
         self.num_stages = num_stages
         self.processing_block_type = processing_block_type
         self.dimensionality_reduction_block_type = dimensionality_reduction_block_type
-
+        
+        print("Input shape:",self.input_shape)
+        print("processing_block_type:",self.processing_block_type)
+        
         # build the network
         self.build_module()
 
@@ -307,6 +310,7 @@ class ConvolutionalNetwork(nn.Module):
                                             bias=True)
         out = self.logit_linear_layer(out)  # apply linear layer on flattened inputs
         print("Block is built, output volume is", out.shape)
+        print("Layer_Dict:",self.layer_dict)
         return out
 
     def forward(self, x):
