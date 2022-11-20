@@ -37,7 +37,7 @@ def get_args():
     parser.add_argument('--num_filters', nargs="?", type=int, default=16,
                         help='Number of convolutional filters per convolutional layer in the network (excluding '
                              'dimensionality reduction layers)')
-    parser.add_argument('--num_epochs', nargs="?", type=int, default=50, help='Total number of epochs for model training')
+    parser.add_argument('--num_epochs', nargs="?", type=int, default=100, help='Total number of epochs for model training')
     parser.add_argument('--num_classes', nargs="?", type=int, default=100, help='Number of classes in the dataset')
     parser.add_argument('--experiment_name', nargs="?", type=str, default="exp_1",
                         help='Experiment name - to be used for building the experiment folder')
