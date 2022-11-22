@@ -73,7 +73,7 @@ class ExperimentBuilder(nn.Module):
         print('Total number of conv layers', num_conv_layers)
         print('Total number of linear layers', num_linear_layers)
 
-        self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
+        self.optimizer = optim.Adam(self.parameters(), amsgrad=False,lr=0.01,
                                     weight_decay=weight_decay_coefficient)
         self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
                                                                             T_max=num_epochs,
@@ -87,8 +87,6 @@ class ExperimentBuilder(nn.Module):
         self.best_val_model_idx = 0
         self.best_val_model_acc = 0.
         
-        print(experiment_name)
-        print(self.experiment_folder)
         if not os.path.exists(self.experiment_folder):  # If experiment directory does not exist
             os.mkdir(self.experiment_folder)  # create the experiment directory
             os.mkdir(self.experiment_logs)  # create the experiment log directory

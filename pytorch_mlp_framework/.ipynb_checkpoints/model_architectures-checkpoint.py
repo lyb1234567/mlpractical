@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+print(torch.cuda.is_available())
 
 
 class FCCNetwork(nn.Module):
@@ -151,9 +152,7 @@ class ConvolutionalProcessingBlock(nn.Module):
         self.padding = padding
         self.bias = bias
         self.dilation = dilation
-
         self.build_module()
-
     def build_module(self):
         self.layer_dict = nn.ModuleDict()
         x = torch.zeros(self.input_shape)
@@ -199,7 +198,7 @@ class ConvolutionalDimensionalityReductionBlock(nn.Module):
         self.dilation = dilation
         self.reduction_factor = reduction_factor
         self.build_module()
-
+    
     def build_module(self):
         self.layer_dict = nn.ModuleDict()
         x = torch.zeros(self.input_shape)
@@ -219,6 +218,7 @@ class ConvolutionalDimensionalityReductionBlock(nn.Module):
                                               padding=self.padding, stride=1)
 
         out = self.layer_dict['conv_1'].forward(out)
+
         out = F.leaky_relu(out)
 
         print(out.shape)
@@ -227,11 +227,13 @@ class ConvolutionalDimensionalityReductionBlock(nn.Module):
         out = x
 
         out = self.layer_dict['conv_0'].forward(out)
+
         out = F.leaky_relu(out)
 
         out = F.avg_pool2d(out, self.reduction_factor)
 
         out = self.layer_dict['conv_1'].forward(out)
+
         out = F.leaky_relu(out)
 
         return out
@@ -342,3 +344,228 @@ class ConvolutionalNetwork(nn.Module):
                 pass
 
         self.logit_linear_layer.reset_parameters()
+
+
+class ConvolutionalProcessingBlockWithBN(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation):
+        super(ConvolutionalProcessingBlockWithBN, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+
+        self.layer_dict['conv_0'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+        self.layer_dict['bn_0'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        self.layer_dict['conv_1'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+
+        self.layer_dict['bn_1'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out)
+
+        print(out.shape)
+
+    def forward(self, x):
+        out = x
+
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out)
+
+        return out
+
+
+class ConvolutionalDimensionalityReductionBlockWithBN(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, reduction_factor):
+        super(ConvolutionalDimensionalityReductionBlockWithBN, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.reduction_factor = reduction_factor
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+
+        self.layer_dict['conv_0'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+        self.layer_dict['bn_0'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        out = F.avg_pool2d(out, self.reduction_factor)
+
+        self.layer_dict['conv_1'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+        self.layer_dict['bn_1'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out)
+
+        print(out.shape)
+
+    def forward(self, x):
+        out = x
+
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        out = F.avg_pool2d(out, self.reduction_factor)
+
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out)
+
+        return out
+
+
+class ConvolutionalProcessingBlockWithBNWithRC(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation):
+        super(ConvolutionalProcessingBlockWithBNWithRC, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+
+        self.layer_dict['conv_0'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+        self.layer_dict['bn_0'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        self.layer_dict['conv_1'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+
+        self.layer_dict['bn_1'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out+x)
+        
+
+        print(out.shape)
+
+    def forward(self, x):
+        out = x
+
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out+x)
+
+        return out
+
+
+class ConvolutionalDimensionalityReductionBlockWithBNWithRC(nn.Module):
+    def __init__(self, input_shape, num_filters, kernel_size, padding, bias, dilation, reduction_factor):
+        super(ConvolutionalDimensionalityReductionBlockWithBNWithRC, self).__init__()
+
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
+        self.input_shape = input_shape
+        self.padding = padding
+        self.bias = bias
+        self.dilation = dilation
+        self.reduction_factor = reduction_factor
+        self.build_module()
+
+    def build_module(self):
+        self.layer_dict = nn.ModuleDict()
+        x = torch.zeros(self.input_shape)
+        out = x
+
+        self.layer_dict['conv_0'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+        self.layer_dict['bn_0'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        out = F.avg_pool2d(out, self.reduction_factor)
+        
+        self.layer_dict['conv_1'] = nn.Conv2d(in_channels=out.shape[1], out_channels=self.num_filters, bias=self.bias,
+                                              kernel_size=self.kernel_size, dilation=self.dilation,
+                                              padding=self.padding, stride=1)
+        self.layer_dict['bn_1'] = nn.BatchNorm2d(self.input_shape[1])
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out)
+
+        print(out.shape)
+
+    def forward(self, x):
+        out = x
+
+        out = self.layer_dict['conv_0'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_0'].forward(out)
+        out = F.leaky_relu(out)
+
+        out = F.avg_pool2d(out, self.reduction_factor)
+        
+        out = self.layer_dict['conv_1'].forward(out)
+        # insert Batch Normalization
+        out = self.layer_dict['bn_1'].forward(out)
+        out = F.leaky_relu(out)
+
+        return out

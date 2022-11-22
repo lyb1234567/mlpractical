@@ -15,7 +15,6 @@ import os
 args = get_args()  # get arguments from command line
 rng = np.random.RandomState(seed=args.seed)  # set the seeds for the experiment
 torch.manual_seed(seed=args.seed)  # sets pytorch's seed
-print(args)
 
 
 # set up data augmentation transforms for training and testing
@@ -51,6 +50,12 @@ if args.block_type == 'conv_block':
 elif args.block_type == 'empty_block':
     processing_block_type = EmptyBlock
     dim_reduction_block_type = EmptyBlock
+elif args.block_type== 'BN_block':
+    processing_block_type = ConvolutionalProcessingBlockWithBN
+    dim_reduction_block_type= ConvolutionalDimensionalityReductionBlockWithBN
+elif args.block_type== 'BN+RC_block':
+    processing_block_type = ConvolutionalProcessingBlockWithBNWithRC
+    dim_reduction_block_type= ConvolutionalDimensionalityReductionBlockWithBNWithRC
 else:
     raise ModuleNotFoundError
 
