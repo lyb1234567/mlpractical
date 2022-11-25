@@ -155,14 +155,14 @@ class ExperimentBuilder(nn.Module):
         Complete the code in the block below to collect absolute mean of the gradients for each layer in all_grads with the             layer names in layers.
         """
         ########################################
+        ## remove the bias part of the gradient and clean the name of each convolutional layer.
         for name, parameter in named_parameters:
+            ## Remove the bias part
             if "bias" not in name:
                 layer_temp.append(name)
                 mean_grad=parameter.grad.abs().mean()
                 all_grads.append(mean_grad)
-        print("All grads:")
-        print(all_grads)
-        print('\n\n')
+        ## Clean the name of each convolutional layer.
         for st in layer_temp:
             lst=st.replace('layer_dict',' ').replace('.',' ').replace('weight',' ').strip().split()
             if len(lst)>1:
@@ -172,13 +172,7 @@ class ExperimentBuilder(nn.Module):
                 lst[0]='weight_'+lst[0]
                 new_st=lst[0]
             layers.append(new_st)
-         
-        print(layers)
-        ########################################
-            
-        
         plt = self.plot_func_def(all_grads, layers)
-        
         return plt
     
     

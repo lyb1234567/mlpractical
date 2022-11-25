@@ -492,6 +492,7 @@ class ConvolutionalProcessingBlockWithBNWithRC(nn.Module):
         out = self.layer_dict['conv_1'].forward(out)
         # insert Batch Normalization
         out = self.layer_dict['bn_1'].forward(out)
+        ## Add residual connection
         out = F.leaky_relu(out+x)
         
 
@@ -508,6 +509,7 @@ class ConvolutionalProcessingBlockWithBNWithRC(nn.Module):
         out = self.layer_dict['conv_1'].forward(out)
         # insert Batch Normalization
         out = self.layer_dict['bn_1'].forward(out)
+        ## Add residual connection
         out = F.leaky_relu(out+x)
 
         return out
